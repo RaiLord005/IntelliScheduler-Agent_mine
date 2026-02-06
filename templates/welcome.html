@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <title>Welcome | IntelliScheduler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: #0f172a; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ANIMATED BACKGROUND */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+            animation: bgShift 8s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10px, 10px); }
+        }
+
+        /* ANIMATED PARTICLES */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #0ea5e9, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            box-shadow: 0 0 10px #0ea5e9;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            box-shadow: 
+                0 0 60px rgba(14, 165, 233, 0.4),
+                0 0 100px rgba(52, 211, 153, 0.2),
+                inset 0 0 30px rgba(14, 165, 233, 0.1);
+            animation: containerPulse 3s ease-in-out infinite;
+            max-width: 600px;
+        }
+
+        @keyframes containerPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 60px rgba(14, 165, 233, 0.4),
+                    0 0 100px rgba(52, 211, 153, 0.2),
+                    inset 0 0 30px rgba(14, 165, 233, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 80px rgba(14, 165, 233, 0.6),
+                    0 0 130px rgba(52, 211, 153, 0.4),
+                    inset 0 0 50px rgba(14, 165, 233, 0.2);
+            }
+        }
+
+        /* GLOWING TITLE */
+        h1 { 
+            font-size: 4rem; 
+            background: linear-gradient(45deg, #0ea5e9, #34d399, #818cf8, #0ea5e9);
+            background-size: 300% 300%;
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            animation: gradientShift 4s ease infinite;
+            text-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+            letter-spacing: 2px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SUBTITLE */
+        p { 
+            color: #94a3b8; 
+            margin-bottom: 50px; 
+            font-size: 1.3rem;
+            animation: textGlow 2s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { 
+                color: #94a3b8;
+                text-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+            }
+            50% { 
+                color: #cbd5e1;
+                text-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
+            }
+        }
+
+        /* BUTTON CONTAINER */
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* BUTTONS */
+        .btn { 
+            padding: 15px 45px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            text-decoration: none; 
+            font-size: 1.1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* LOGIN BUTTON */
+        .btn-login { 
+            background: rgba(14, 165, 233, 0.1);
+            border-color: #0ea5e9;
+            color: #0ea5e9;
+            box-shadow: 
+                0 0 20px rgba(14, 165, 233, 0.3),
+                inset 0 0 20px rgba(14, 165, 233, 0.1);
+            animation: glowBlue 2s ease-in-out infinite;
+        }
+
+        @keyframes glowBlue {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(14, 165, 233, 0.3),
+                    inset 0 0 20px rgba(14, 165, 233, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 40px rgba(14, 165, 233, 0.6),
+                    inset 0 0 30px rgba(14, 165, 233, 0.2);
+            }
+        }
+
+        .btn-login:hover { 
+            background: #0ea5e9; 
+            color: #0f172a;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 0 60px rgba(14, 165, 233, 0.8),
+                inset 0 0 30px rgba(14, 165, 233, 0.3),
+                0 10px 30px rgba(14, 165, 233, 0.4);
+        }
+
+        /* SIGNUP BUTTON */
+        .btn-signup { 
+            background: rgba(52, 211, 153, 0.1);
+            border-color: #34d399;
+            color: #34d399;
+            box-shadow: 
+                0 0 20px rgba(52, 211, 153, 0.3),
+                inset 0 0 20px rgba(52, 211, 153, 0.1);
+            animation: glowGreen 2.5s ease-in-out infinite;
+        }
+
+        @keyframes glowGreen {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(52, 211, 153, 0.3),
+                    inset 0 0 20px rgba(52, 211, 153, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 40px rgba(52, 211, 153, 0.6),
+                    inset 0 0 30px rgba(52, 211, 153, 0.2);
+            }
+        }
+
+        .btn-signup:hover { 
+            background: #34d399; 
+            color: #020617;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 0 60px rgba(52, 211, 153, 0.8),
+                inset 0 0 30px rgba(52, 211, 153, 0.3),
+                0 10px 30px rgba(52, 211, 153, 0.4);
+        }
+
+        /* ICON ANIMATIONS */
+        .icon {
+            display: inline-block;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover .icon {
+            transform: translateX(5px) rotateY(360deg);
+        }
+
+        /* FLOATING ORBS */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .orb1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.4), transparent);
+            top: -100px;
+            right: -100px;
+            animation: orbit 20s linear infinite;
+        }
+
+        .orb2 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.4), transparent);
+            top: 50%;
+            left: -50px;
+            animation: orbit 25s linear infinite reverse;
+        }
+
+        @keyframes orbit {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, 50px) scale(1.1); }
+            50% { transform: translate(100px, 0) scale(1); }
+            75% { transform: translate(50px, -50px) scale(1.1); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .container { padding: 40px 20px; }
+            .button-container { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    
+    <button onclick="toggleTheme()" style="position: fixed; top: 20px; right: 20px; background: rgba(14, 165, 233, 0.2); border: 2px solid #0ea5e9; color: #0ea5e9; padding: 12px 18px; border-radius: 50px; cursor: pointer; font-size: 1.3rem; transition: all 0.3s; box-shadow: 0 0 20px rgba(14, 165, 233, 0.4); z-index: 100;" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+
+    <div class="container">
+        <h1><i class="fas fa-project-diagram"></i> IntelliScheduler V2</h1>
+        <p>✨ The Advanced AI Assistant for your time ✨</p>
+        
+        <div class="button-container">
+            <a href="/login" class="btn btn-login">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="/signup" class="btn btn-signup">
+                <i class="fas fa-user-plus"></i> Create Account
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // CREATE FLOATING PARTICLES
+        function createParticles() {
+            const particleCount = 12;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                document.body.appendChild(particle);
+
+                // Recreate particle after animation ends
+                setTimeout(() => {
+                    particle.remove();
+                    createParticles();
+                }, 25000);
+            }
+        }
+
+        // BUTTON RIPPLE EFFECT
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+                ripple.style.animation = 'rippleEffect 0.6s ease-out';
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // MOUSEMOVE PARALLAX EFFECT
+        document.addEventListener('mousemove', (e) => {
+            const container = document.querySelector('.container');
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.005;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.005;
+            container.style.transform = `perspective(1000px) rotateX(${moveY}deg) rotateY(${moveX}deg)`;
+        });
+
+        // INITIALIZE PARTICLES
+        createParticles();
+
+        // ADD RIPPLE ANIMATION TO STYLESHEET
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes rippleEffect {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // THEME TOGGLE
+        function toggleTheme() {
+            const btn = document.querySelector('button[title="Toggle Theme"] i');
+            if (localStorage.getItem('theme') === 'light') {
+                localStorage.setItem('theme', 'dark');
+                document.body.style.background = '#0f172a';
+                btn.className = 'fas fa-moon';
+            } else {
+                localStorage.setItem('theme', 'light');
+                document.body.style.background = '#f0f2f5';
+                document.querySelector('.container').style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(240, 242, 245, 0.85))';\n                document.querySelector('h1').style.color = '#0ea5e9';\n                document.querySelector('p').style.color = '#333';\n                btn.className = 'fas fa-sun';\n            }\n        }\n    </script>
+</body>
+</html>

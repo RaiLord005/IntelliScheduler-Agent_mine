@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <title>Lobby | IntelliScheduler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg:#0f172a; --card:#1e293b; --text:#f8fafc; --accent:#0ea5e9; --success:#10b981; --warning:#f59e0b; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 40px; display:flex; flex-direction:column; align-items:center; }
+        .header-bar { width:100%; max-width:800px; display:flex; justify-content:space-between; margin-bottom:40px; }
+        .user-info { display:flex; gap:15px; align-items:center; }
+        .card { background: var(--card); padding: 25px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; width:100%; max-width:800px; transition:0.3s; }
+        .card:hover { transform:translateY(-5px); border-color:var(--success); }
+        .btn-join { background: #10b981; color: black; padding: 10px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; }
+        .empty-state { text-align:center; opacity:0.6; margin-top:50px; }
+        .role-badge { font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; margin-left: 10px; opacity: 0.8; }
+        .role-host { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .role-guest { background: rgba(14, 165, 233, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        
+        /* TABS */
+        .tabs { display: flex; gap: 15px; margin-bottom: 30px; }
+        .tab-btn { padding: 10px 20px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: 0.3s; color: #94a3b8; }
+        .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 0 10px var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <a href="/menu" style="color:#94a3b8; text-decoration:none; font-weight:bold;"><i class="fa-solid fa-arrow-left"></i> Menu</a>
+        <div class="user-info">
+            <span>{{ username }}</span>
+            <button onclick="alert('System Active')" style="background:none; border:none; color:white; cursor:pointer;"><i class="fa-regular fa-bell"></i></button>
+            <a href="/logout" style="color:#f43f5e;"><i class="fa-solid fa-power-off"></i></a>
+        </div>
+    </div>
+
+    <h1 style="color:var(--success); margin-bottom:10px;">Active Lobby</h1>
+
+    <div class="tabs">
+        <div class="tab-btn active" id="tab-person" onclick="switchLobby('person')">Person-to-Person</div>
+        <div class="tab-btn" id="tab-org" onclick="switchLobby('org')">Organization-Based</div>
+    </div>
+
+    {% if meetings|length == 0 %}
+        <div class="empty-state">
+            <i class="fa-regular fa-calendar-xmark" style="font-size:60px; margin-bottom:20px;"></i>
+            <h2>No Scheduled Missions</h2>
+            <p>Your calendar is clear.</p>
+        </div>
+    {% else %}
+        
+        <div id="lobby-person">
+            {% for m in meetings %}
+                {% if m.invite_type == 'person' %}
+                <div class="card">
+                    <div>
+                        <h3 style="margin:0 0 8px 0;">
+                            {{ m.title }}
+                            {% if m.organizer_id == my_id %}
+                                <span class="role-badge role-host">HOST</span>
+                            {% else %}
+                                <span class="role-badge role-guest">GUEST</span>
+                            {% endif %}
+                        </h3>
+                        <div style="opacity:0.7; font-size:0.9em;">
+                            Invited by: <b>{{ m.organizer_name }}</b> | {{ m.start_time }}
+                        </div>
+                    </div>
+                    <a href="#" class="btn-join" onclick="alert('Connecting to {{ m.location }}...')">Join <i class="fa-solid fa-arrow-right-to-bracket"></i></a>
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% if meetings|selectattr("invite_type", "equalto", "person")|list|length == 0 %}
+                <p style="opacity:0.5; text-align:center; color:#94a3b8;">No person-to-person invites.</p>
+            {% endif %}
+        </div>
+
+        <div id="lobby-org" style="display:none;">
+            {% for m in meetings %}
+                {% if m.invite_type == 'org' %}
+                <div class="card">
+                    <div>
+                        <h3 style="margin:0 0 8px 0;">
+                            {{ m.title }}
+                            {% if m.organizer_id == my_id %}
+                                <span class="role-badge role-host">HOST</span>
+                            {% else %}
+                                <span class="role-badge role-guest">GUEST</span>
+                            {% endif %}
+                        </h3>
+                        <div style="opacity:0.7; font-size:0.9em;">
+                            Invited by: <b>{{ m.organizer_name }}</b> (Team Lead) | {{ m.start_time }}
+                        </div>
+                    </div>
+                    <a href="#" class="btn-join" onclick="alert('Connecting to {{ m.location }}...')">Join <i class="fa-solid fa-arrow-right-to-bracket"></i></a>
+                </div>
+                {% endif %}
+            {% endfor %}
+            {% if meetings|selectattr("invite_type", "equalto", "org")|list|length == 0 %}
+                <p style="opacity:0.5; text-align:center; color:#94a3b8;">No organization invites.</p>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
+    <script>
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+        
+        function switchLobby(type) {
+            document.getElementById('lobby-person').style.display = (type === 'person') ? 'block' : 'none';
+            document.getElementById('lobby-org').style.display = (type === 'org') ? 'block' : 'none';
+            document.getElementById('tab-person').className = (type === 'person') ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tab-org').className = (type === 'org') ? 'tab-btn active' : 'tab-btn';
+        }
+    </script>
+</body>
+</html>

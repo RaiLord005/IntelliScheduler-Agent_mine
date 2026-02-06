@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Meeting</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f0f2f5; max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn-save { background: #28a745; color: white; border: none; padding: 10px; width: 100%; margin-top: 20px; cursor: pointer; font-size: 16px; border-radius: 5px;}
+        .btn-cancel { background: #6c757d; display: block; text-align: center; text-decoration: none; color: white; padding: 10px; margin-top: 10px; border-radius: 5px;}
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>✏️ Edit Meeting</h2>
+    
+    <input type="hidden" id="meeting_id" value="{{ meeting.meeting_id }}">
+
+    <label>Title</label>
+    <input type="text" id="title" value="{{ meeting.title }}">
+
+    <label>Start Time</label>
+    <input type="datetime-local" id="startTime" value="{{ meeting.start_time }}">
+
+    <label>End Time</label>
+    <input type="datetime-local" id="endTime" value="{{ meeting.end_time }}">
+
+    <button class="btn-save" onclick="updateMeeting()">Save Corrections</button>
+    <a href="/" class="btn-cancel">Cancel</a>
+</div>
+
+<script>
+    async function updateMeeting() {
+        const id = document.getElementById('meeting_id').value;
+        const data = {
+            meeting_id: id,
+            title: document.getElementById('title').value,
+            start_time: document.getElementById('startTime').value,
+            end_time: document.getElementById('endTime').value
+        };
+
+        const res = await fetch('/api/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+        if(json.status === 'success') {
+            alert("Meeting Updated!");
+            window.location.href = "/"; // Go back to dashboard
+        } else {
+            alert("Error: " + json.message);
+        }
+    }
+</script>
+
+</body>
+</html>

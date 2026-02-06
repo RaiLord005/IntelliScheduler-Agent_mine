@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <title>Command Center | IntelliScheduler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CORE */
+        :root { --bg:#0f172a; --card:#1e293b; --text:#f8fafc; --accent:#0ea5e9; --danger:#f43f5e; --success:#10b981; }
+        [data-theme="animated"] { --bg:#000; --card:rgba(255,255,255,0.08); --accent:#f472b6; --bg-img:linear-gradient(-45deg, #10002b, #240046, #3c096c); }
+        [data-theme="animated"] body { animation: gradientBG 15s ease infinite; }
+        body { background: var(--bg); background-image: var(--bg-img); background-size: 400% 400%; color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 30px; }
+        @keyframes gradientBG { 0% {background-position:0% 50%} 50% {background-position:100% 50%} 100% {background-position:0% 50%} }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.8fr 1fr; gap: 30px; }
+        .glass-card { background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+
+        /* ANALYTICS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; max-width: 1200px; margin: 0 auto; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+        .stat-info h3 { margin: 0; font-size: 1.5rem; }
+        .stat-info p { margin: 0; opacity: 0.7; font-size: 0.8rem; text-transform: uppercase; }
+
+        /* INPUTS */
+        .input-group { margin-top: 15px; width: 100%; }
+        label { display: block; font-weight: 600; color: #94a3b8; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); outline: none; }
+        input::placeholder { color: #64748b; transition: 0.2s; }
+        input:focus::placeholder { color: transparent; }
+
+        /* TABS (The Solution) */
+        .toggle-container { display: flex; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 4px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+        .toggle-btn { flex: 1; padding: 8px; text-align: center; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 0.9rem; transition: 0.3s; color: #94a3b8; }
+        .toggle-btn.active { background: var(--accent); color: white; box-shadow: 0 0 15px var(--accent); }
+
+        /* SLOTS */
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 25px; }
+        .slot-box { padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: bold; border: 2px solid transparent; transition: 0.3s; }
+        .slot-green { background: rgba(16, 185, 129, 0.15); border-color: var(--success); color: var(--success); }
+        .slot-green:hover { background: var(--success); color: white; transform: scale(1.05); }
+        .slot-red { background: var(--danger); color: white; border: 1px solid #b91c1c; opacity: 1; cursor: not-allowed; pointer-events: none; }
+        .slot-selected { background: var(--accent) !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 20px var(--accent); }
+
+        /* LIST */
+        .monitor-row { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+        .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; font-weight: bold; background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .btn-icon { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; margin-left: 8px; }
+        .btn-icon:hover { color: white; transform: scale(1.2); }
+        .btn-main { width: 100%; padding: 15px; margin-top: 25px; background: linear-gradient(135deg, var(--accent), #6366f1); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 20px; width: 400px; border: 1px solid rgba(255,255,255,0.1); }
+        #successOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.5s; }
+        .check-circle { width: 100px; height: 100px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; font-size: 50px; color: white; box-shadow: 0 0 50px var(--success); margin-bottom: 20px; animation: popIn 0.5s; }
+        @keyframes popIn { 0% {transform: scale(0);} 100% {transform: scale(1);} }
+    </style>
+</head>
+<body>
+    <div id="successOverlay"><div class="check-circle"><i class="fa-solid fa-check"></i></div><h1 style="color:white; letter-spacing:2px;">MEETING CONFIRMED</h1></div>
+
+    <div style="display:flex; justify-content:space-between; margin-bottom:20px; max-width:1200px; margin: 0 auto 20px auto;">
+        <a href="/menu" style="color:var(--text); text-decoration:none; font-weight:bold;"><i class="fa-solid fa-arrow-left"></i> Menu</a>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <span>{{ username }}</span>
+            <button class="btn-icon" onclick="alert('System Active')"><i class="fa-regular fa-bell"></i></button>
+            <a href="/logout" style="color:#f43f5e;"><i class="fa-solid fa-power-off"></i></a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" onclick="refreshStats()"><div class="stat-icon" style="background: #10b981;"><i class="fa-solid fa-compress-arrows-alt"></i></div><div class="stat-info"><h3 id="stat-compression">Tap to Load</h3><p>Compression</p></div></div>
+        <div class="stat-card" onclick="refreshStats()"><div class="stat-icon" style="background: #f59e0b;"><i class="fa-solid fa-stopwatch"></i></div><div class="stat-info"><h3 id="stat-overhead">Tap to Load</h3><p>Overhead</p></div></div>
+        <div class="stat-card" onclick="refreshStats()"><div class="stat-icon" style="background: #0ea5e9;"><i class="fa-solid fa-users-viewfinder"></i></div><div class="stat-info"><h3 id="stat-users">Tap to Load</h3><p>Coordination</p></div></div>
+        <div class="stat-card" onclick="refreshStats()"><div class="stat-icon" style="background: #8b5cf6;"><i class="fa-solid fa-chart-line"></i></div><div class="stat-info"><h3 id="stat-time">Tap to Load</h3><p>Time Saved</p></div></div>
+    </div>
+
+    <div class="container">
+        <div class="glass-card">
+            <h2 style="margin-top:0; color:var(--accent); border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">Schedule Meeting</h2>
+            <div class="input-group"><label>Title</label><input type="text" id="title" placeholder="Enter title here..."></div>
+
+            <div class="input-group">
+                <label>Invitation Type</label>
+                <div class="toggle-container" id="mode-selector" data-mode="person">
+                    <div class="toggle-btn active" id="btn-person" onclick="setMode('person')"><i class="fa-solid fa-user"></i> Person-to-Person</div>
+                    <div class="toggle-btn" id="btn-org" onclick="setMode('org')"><i class="fa-solid fa-building"></i> Organization-Based</div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:30px;">
+                <div class="input-group" style="flex:1;">
+                    <label>Select Participant</label>
+                    <select id="org-filter" style="display:none; margin-bottom:10px;" onchange="filterUsersByOrg()">
+                        <option value="" disabled selected>Select Organization...</option>
+                        {% for org in all_orgs %}<option value="{{ org.organization }}">{{ org.organization }}</option>{% endfor %}
+                    </select>
+                    <select id="participant" onchange="loadSlots()">
+                        <option value="" disabled selected>Select User...</option>
+                        {% for u in all_users %}<option value="{{ u.user_id }}" data-org="{{ u.organization }}">{{ u.username }} ({{ u.organization }})</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="input-group" style="flex:1;"><label>Location</label><select id="location"><option>Office</option><option>Online</option></select></div>
+            </div>
+
+            <div style="display:flex; gap:30px;">
+                <div class="input-group"><label>Date</label><input type="date" id="date" onchange="loadSlots()"></div>
+                <div class="input-group"><label>Duration</label><input type="number" id="duration" value="1" min="1" max="5" onchange="loadSlots()"></div>
+            </div>
+            
+            <label style="margin-top:20px;">Available Slots</label>
+            <div id="slots" class="slot-grid"><p style="opacity:0.5; grid-column:span 3; text-align:center;">Select Date & Participant...</p></div>
+            <input type="hidden" id="s"><input type="hidden" id="e">
+            <button class="btn-main" onclick="book()">Confirm Schedule</button>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="margin-top:0; color:var(--success);">My Created Meetings</h2>
+            
+            <div class="toggle-container" style="margin-bottom:20px;">
+                <div class="toggle-btn active" id="view-person" onclick="switchMonitorView('person')">Person</div>
+                <div class="toggle-btn" id="view-org" onclick="switchMonitorView('org')">Organization</div>
+            </div>
+
+            <div id="list-person">
+                {% for m in meetings %}
+                    {% if m.invite_type == 'person' %}
+                    <div class="monitor-row" id="meet-{{ m.meeting_id }}">
+                        <div>
+                            <div style="font-weight:bold;">{{ m.title }}</div>
+                            <div style="font-size:0.85em; opacity:0.7;">With: {{ m.participant_name }} <br> {{ m.start_time }}</div>
+                            <span class="badge">Confirmed</span>
+                        </div>
+                        <div><button class="btn-icon edit" onclick="openEdit('{{ m.meeting_id }}','{{ m.title }}')"><i class="fa-solid fa-pen"></i></button><button class="btn-icon delete" onclick="openCancel('{{ m.meeting_id }}')"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% if meetings|selectattr("invite_type", "equalto", "person")|list|length == 0 %}
+                    <p style="opacity:0.5; text-align:center;">No Person meetings.</p>
+                {% endif %}
+            </div>
+
+            <div id="list-org" style="display:none;">
+                {% for m in meetings %}
+                    {% if m.invite_type == 'org' %}
+                    <div class="monitor-row" id="meet-{{ m.meeting_id }}">
+                        <div>
+                            <div style="font-weight:bold;">{{ m.title }}</div>
+                            <div style="font-size:0.85em; opacity:0.7;">
+                                With: <strong style="color:var(--accent);">{{ m.participant_org }}</strong>
+                                <br> {{ m.start_time }}
+                            </div>
+                            <span class="badge">Confirmed</span>
+                        </div>
+                        <div><button class="btn-icon edit" onclick="openEdit('{{ m.meeting_id }}','{{ m.title }}')"><i class="fa-solid fa-pen"></i></button><button class="btn-icon delete" onclick="openCancel('{{ m.meeting_id }}')"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% if meetings|selectattr("invite_type", "equalto", "org")|list|length == 0 %}
+                    <p style="opacity:0.5; text-align:center;">No Org meetings.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal"><div class="modal-content"><h2>Edit</h2><input type="hidden" id="editId"><label>Title</label><input type="text" id="editTitle"><div style="display:flex; gap:10px;"><input type="date" id="editDate"><input type="time" id="editTime"></div><button class="btn-main" onclick="confirmEdit()">Save</button><button onclick="closeModals()" style="background:none; border:none; color:white; width:100%; margin-top:10px;">Cancel</button></div></div>
+    <div id="cancelModal" class="modal"><div class="modal-content"><h2 style="color:var(--danger);">Abort?</h2><input type="hidden" id="cancelId"><label>Reason</label><select id="cancelReason"><option>Conflict</option><option>Personal</option></select><div style="display:flex; gap:10px;"><button class="btn-main" style="background:var(--danger);" onclick="confirmCancel()">Confirm</button><button class="btn-main" style="background:var(--accent);" onclick="reschedule()">Reschedule</button></div><button onclick="closeModals()" style="background:none; border:none; color:white; width:100%; margin-top:10px;">Back</button></div></div>
+
+    <script>
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+
+        // --- NEW: Toggle Monitor Views ---
+        function switchMonitorView(view) {
+            document.getElementById('list-person').style.display = (view === 'person') ? 'block' : 'none';
+            document.getElementById('list-org').style.display = (view === 'org') ? 'block' : 'none';
+            document.getElementById('view-person').className = (view === 'person') ? 'toggle-btn active' : 'toggle-btn';
+            document.getElementById('view-org').className = (view === 'org') ? 'toggle-btn active' : 'toggle-btn';
+        }
+
+        // --- Booking Mode Logic ---
+        function setMode(mode) {
+            document.getElementById('mode-selector').setAttribute('data-mode', mode);
+            const orgFilter = document.getElementById('org-filter');
+            const participantSelect = document.getElementById('participant');
+            const btnPerson = document.getElementById('btn-person');
+            const btnOrg = document.getElementById('btn-org');
+            const options = participantSelect.options;
+
+            if (mode === 'person') {
+                btnPerson.classList.add('active');
+                btnOrg.classList.remove('active');
+                orgFilter.style.display = 'none';
+                for (let i = 0; i < options.length; i++) options[i].style.display = 'block';
+                participantSelect.value = ""; 
+            } else {
+                btnOrg.classList.add('active');
+                btnPerson.classList.remove('active');
+                orgFilter.style.display = 'block';
+                participantSelect.value = "";
+                filterUsersByOrg();
+            }
+        }
+
+        function filterUsersByOrg() {
+            const selectedOrg = document.getElementById('org-filter').value;
+            const participantSelect = document.getElementById('participant');
+            const options = participantSelect.options;
+            participantSelect.value = "";
+            for (let i = 0; i < options.length; i++) {
+                const userOrg = options[i].getAttribute('data-org');
+                if (i === 0) continue; 
+                options[i].style.display = (selectedOrg === "" || userOrg === selectedOrg) ? 'block' : 'none';
+            }
+        }
+
+        // --- API Calls ---
+        async function refreshStats() { const res=await fetch('/api/refresh_analytics', {method:'POST'}); const json=await res.json(); if(json.status==='success'){ document.getElementById('stat-compression').innerText=json.metrics.compression; document.getElementById('stat-overhead').innerText=json.metrics.overhead; document.getElementById('stat-users').innerText=json.metrics.users; document.getElementById('stat-time').innerText=json.metrics.time_saved; } }
+        async function loadSlots() {
+            const date=document.getElementById('date').value, dur=document.getElementById('duration').value, part=document.getElementById('participant').value;
+            if(!date) return;
+            const grid=document.getElementById('slots'); grid.innerHTML='<p style="text-align:center; grid-column:span 3">Scanning...</p>';
+            const res=await fetch('/api/get_slots', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({date:date, duration:dur, participant_id:part})});
+            const slots=await res.json(); grid.innerHTML='';
+            slots.forEach(s => { const div=document.createElement('div'); div.innerText=s.display; if(s.status==='booked'){div.className='slot-box slot-red'; div.innerText+=' (Booked)';} else {div.className='slot-box slot-green'; div.onclick=()=>{document.querySelectorAll('.slot-box').forEach(e=>e.classList.remove('slot-selected')); div.classList.add('slot-selected'); document.getElementById('s').value=s.full_start; document.getElementById('e').value=s.full_end;};} grid.appendChild(div); });
+        }
+        async function book() {
+            const d = {title:document.getElementById('title').value, participant_id:document.getElementById('participant').value, location:document.getElementById('location').value, start_time:document.getElementById('s').value, end_time:document.getElementById('e').value, invite_type: document.getElementById('mode-selector').getAttribute('data-mode')};
+            if(!d.start_time || !d.participant_id) return alert("Select Participant & Slot!");
+            const res=await fetch('/api/schedule', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)});
+            const json=await res.json();
+            if(json.status==='success') {
+                const ov=document.getElementById('successOverlay'); ov.style.display='flex'; setTimeout(()=>ov.style.opacity='1',10); setTimeout(()=>{ov.style.opacity='0'; setTimeout(()=>{ov.style.display='none'},500); location.reload();},1500);
+            } else alert(json.message);
+        }
+
+        // --- Modals ---
+        function openEdit(id, title) { document.getElementById('editId').value=id; document.getElementById('editTitle').value=title; document.getElementById('editModal').style.display='flex'; setTimeout(()=>document.getElementById('editModal').classList.add('active'),10); }
+        async function confirmEdit() { await fetch('/api/update_meeting', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({meeting_id:document.getElementById('editId').value, title:document.getElementById('editTitle').value, date:document.getElementById('editDate').value, time:document.getElementById('editTime').value})}); location.reload(); }
+        function openCancel(id) { document.getElementById('cancelId').value=id; document.getElementById('cancelModal').style.display='flex'; setTimeout(()=>document.getElementById('cancelModal').classList.add('active'),10); }
+        async function confirmCancel() { const res=await fetch('/api/cancel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({meeting_id:document.getElementById('cancelId').value, reason:document.getElementById('cancelReason').value})}); if((await res.json()).status==='error') alert("Locked <24h"); else { document.getElementById('meet-'+document.getElementById('cancelId').value).remove(); closeModals(); loadSlots(); } }
+        function reschedule() { closeModals(); document.getElementById('title').focus(); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => { m.style.display='none'; m.classList.remove('active'); }); }
+    </script>
+</body>
+</html>

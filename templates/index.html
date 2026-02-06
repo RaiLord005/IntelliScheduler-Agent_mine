@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scheduler V2 | Fixed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f3f4f6; --primary: #818cf8; --secondary: #34d399; --danger: #f87171; --border: #334155; --input: #020617; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* HEADER */
+        header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        h1 { color: var(--primary); margin: 0; }
+        .logout { color: var(--danger); text-decoration: none; }
+
+        /* GRID */
+        .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--border); }
+        
+        /* INPUTS */
+        input, select { width: 100%; padding: 12px; margin-top: 8px; background: var(--input); border: 1px solid var(--border); color: white; border-radius: 8px; box-sizing: border-box; }
+        label { margin-top: 15px; display: block; font-weight: bold; font-size: 0.9em; }
+
+        /* BUTTONS */
+        button { width: 100%; padding: 14px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+
+        /* SLOTS (FIXED VISUALS) */
+        .slot-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .slot-btn { padding: 15px; border-radius: 8px; text-align: center; border: 1px solid var(--border); background: var(--input); cursor: pointer; transition: 0.2s; }
+        
+        .slot-green { 
+            border-color: var(--secondary); color: var(--secondary); 
+            background: rgba(16, 185, 129, 0.1); 
+        }
+        .slot-green:hover { background: var(--secondary); color: black; }
+
+        .slot-red { 
+            border-color: var(--danger); color: var(--danger); 
+            background: rgba(239, 68, 68, 0.1); 
+            text-decoration: line-through; 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+        }
+
+        .slot-selected { 
+            background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); 
+        }
+
+        /* LIVE MONITOR */
+        .monitor-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .meeting-row { background: var(--input); padding: 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 5px 10px; border-radius: 5px; font-size: 0.8em; }
+        .badge-active { background: rgba(52, 211, 153, 0.2); color: var(--secondary); }
+        .badge-cancelled { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+        
+        /* MODAL */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 12px; width: 400px; text-align: center; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IntelliScheduler</h1>
+            <div>
+                User: <b>{{ username }}</b>
+                <a href="/logout" class="logout">Logout</a>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>New Meeting</h2>
+                
+                <label>Title</label>
+                <input type="text" id="title" placeholder="Meeting Title...">
+
+                <label>Category (Filter)</label>
+                <select id="category" onchange="filterOrganizers()">
+                    <option value="all">Show All</option>
+                    <option value="leadership">Leadership</option>
+                    <option value="remote">Remote Staff</option>
+                    <option value="office">Office Staff</option>
+                </select>
+
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1">
+                        <label>Organizer</label>
+                        <select id="organizer" onchange="autoSelectLocation()">
+                            <option value="" disabled selected>Select...</option>
+                            {% for u in all_users %}
+                                {% set cat = 'office' %}
+                                {% if 'CEO' in u.username or 'Manager' in u.username %}{% set cat = 'leadership' %}{% endif %}
+                                {% if 'Remote' in u.username %}{% set cat = 'remote' %}{% endif %}
+                                <option value="{{ u.user_id }}" data-cat="{{ cat }}" data-loc="{{ u.default_location }}">
+                                    {{ u.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label>Location</label>
+                        <select id="location">
+                            <option value="Online (Zoom)">Online (Zoom)</option>
+                            <option value="Office">Office</option>
+                            <option value="Boardroom">Boardroom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Date</label>
+                <input type="date" id="meetingDate" onchange="loadSlots()">
+
+                <div id="slotContainer" class="slot-container">
+                    <p style="grid-column:span 4; text-align:center; opacity:0.5;">Select Organizer & Date first</p>
+                </div>
+                
+                <input type="hidden" id="startTime"><input type="hidden" id="endTime">
+                <button class="btn-primary" onclick="schedule()">Confirm Booking</button>
+            </div>
+
+            <div class="card">
+                <h2>AI Status</h2>
+                {% if analytics %}
+                    {% for row in analytics %}
+                    <div style="margin-bottom:10px;">
+                        <b>{{ row.metric_name }}:</b> {{ row.value }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h2>Scheduled Meetings</h2>
+            <div class="monitor-list">
+                {% for m in meetings %}
+                <div class="meeting-row">
+                    <div>
+                        <h3>{{ m.title }}</h3>
+                        <div style="opacity:0.7">{{ m.username }} • {{ m.start_time }}</div>
+                    </div>
+                    <div>
+                        {% if m.status == 'cancelled' %}
+                            <span class="badge badge-cancelled">CANCELLED</span>
+                        {% else %}
+                            <span class="badge badge-active">ACTIVE</span>
+                            <button onclick="cancelMeeting({{ m.meeting_id }})" style="background:none; border:none; color:var(--danger); cursor:pointer; width:auto; padding:0; margin-left:10px;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="conflictModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--danger)">Conflict Detected!</h3>
+            <p id="conflictMsg"></p>
+            <div style="background:var(--input); padding:10px; margin:10px 0; border-radius:5px;">
+                AI Suggestion: <b style="color:var(--primary)" id="aiSuggestion"></b>
+            </div>
+            <button class="btn-primary" onclick="acceptSuggestion()">Accept</button>
+            <button onclick="document.getElementById('conflictModal').style.display='none'" style="background:transparent; border:1px solid var(--border); margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. FILTER ORGANIZERS
+        function filterOrganizers() {
+            const cat = document.getElementById('category').value;
+            const opts = document.getElementById('organizer').options;
+            for(let i=0; i<opts.length; i++) {
+                if(opts[i].value === "") continue;
+                const dCat = opts[i].getAttribute('data-cat');
+                opts[i].style.display = (cat === 'all' || dCat === cat) ? 'block' : 'none';
+            }
+            document.getElementById('organizer').value = ""; // Reset
+        }
+
+        // 2. AUTO LOCATION
+        function autoSelectLocation() {
+            const sel = document.getElementById('organizer');
+            const loc = sel.options[sel.selectedIndex].getAttribute('data-loc');
+            if(loc) {
+                const locBox = document.getElementById('location');
+                for(let i=0; i<locBox.options.length; i++) {
+                    if(locBox.options[i].value === loc) {
+                        locBox.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            loadSlots(); // Reload slots if organizer changes
+        }
+
+        // 3. LOAD SLOTS (ROBUST)
+        async function loadSlots() {
+            const date = document.getElementById('meetingDate').value;
+            const org = document.getElementById('organizer').value;
+            const cont = document.getElementById('slotContainer');
+            
+            if(!date || !org) return;
+            
+            cont.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/get_slots', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({date: date, organizer_id: org})
+                });
+                const slots = await res.json();
+                cont.innerHTML = ''; // Clear loading
+
+                slots.forEach(s => {
+                    const btn = document.createElement('div');
+                    btn.innerText = s.start;
+                    
+                    if(s.status === 'booked') {
+                        // RED SLOT
+                        btn.className = 'slot-btn slot-red';
+                        btn.onclick = null; // Cannot click
+                        btn.title = "Already Booked";
+                    } else {
+                        // GREEN SLOT
+                        btn.className = 'slot-btn slot-green';
+                        btn.onclick = () => {
+                            // Selection Logic
+                            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('slot-selected'));
+                            btn.classList.add('slot-selected');
+                            document.getElementById('startTime').value = s.full_start;
+                            document.getElementById('endTime').value = s.full_end;
+                        };
+                    }
+                    cont.appendChild(btn);
+                });
+            } catch(e) {
+                cont.innerHTML = "Error loading slots.";
+            }
+        }
+
+        // 4. SCHEDULE
+        async function schedule() {
+            const d = {
+                title: document.getElementById('title').value,
+                organizer_id: document.getElementById('organizer').value,
+                location: document.getElementById('location').value,
+                start_time: document.getElementById('startTime').value,
+                end_time: document.getElementById('endTime').value
+            };
+
+            // STRICT CHECK
+            if(!d.title) return alert("Please enter a Title.");
+            if(!d.organizer_id) return alert("Please select an Organizer.");
+            if(!d.start_time) return alert("Please select a Green Time Slot.");
+
+            const res = await fetch('/api/schedule', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(d)
+            });
+            const json = await res.json();
+
+            if(json.status === 'conflict') {
+                document.getElementById('conflictMsg').innerText = json.message;
+                document.getElementById('aiSuggestion').innerText = json.suggestion;
+                window.tempSuggestion = json.suggestion;
+                document.getElementById('conflictModal').style.display = 'flex';
+            } else if(json.status === 'success') {
+                alert(json.msg);
+                location.reload();
+            } else {
+                alert("Error: " + json.message);
+            }
+        }
+
+        function acceptSuggestion() {
+            document.getElementById('startTime').value = window.tempSuggestion.replace(' ', 'T');
+            const d = new Date(window.tempSuggestion); d.setHours(d.getHours()+1);
+            document.getElementById('endTime').value = d.toISOString().slice(0,16);
+            document.getElementById('conflictModal').style.display = 'none';
+            schedule();
+        }
+
+        async function cancelMeeting(id) {
+            if(confirm("Cancel this meeting?")) {
+                await fetch('/api/cancel', {
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify({meeting_id:id, reason:"User Clicked Trash"})
+                });
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

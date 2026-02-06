@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Menu | IntelliScheduler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative; }
+        .particle { position: fixed; width: 4px; height: 4px; background: radial-gradient(circle, #0ea5e9, transparent); border-radius: 50%; pointer-events: none; z-index: -1; box-shadow: 0 0 10px #0ea5e9; animation: float 20s infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(100px); opacity: 0; } }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; width: 800px; }
+        .menu-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.7)); backdrop-filter: blur(15px); padding: 40px; border-radius: 25px; text-align: center; border: 2px solid rgba(14, 165, 233, 0.3); transition: all 0.3s; cursor: pointer; text-decoration: none; color: white; box-shadow: 0 0 40px rgba(14, 165, 233, 0.2), inset 0 0 20px rgba(14, 165, 233, 0.05); }
+        .menu-card:hover { transform: translateY(-15px); background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(15, 23, 42, 0.8)); border-color: #0ea5e9; box-shadow: 0 0 60px rgba(14, 165, 233, 0.6), 0 10px 40px rgba(14, 165, 233, 0.4), inset 0 0 30px rgba(14, 165, 233, 0.1); }
+        .icon-box { font-size: 4rem; margin-bottom: 20px; color: #0ea5e9; animation: iconPulse 2s ease-in-out infinite; }
+        .menu-card:hover .icon-box { animation: iconBounce 0.6s ease; }
+        @keyframes iconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes iconBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        h2 { margin: 0 0 10px 0; font-size: 1.5rem; transition: all 0.3s; }
+        p { color: #94a3b8; margin: 0; transition: all 0.3s; }
+        .menu-card:hover h2 { color: #34d399; text-shadow: 0 0 15px rgba(52, 211, 153, 0.5); }
+        .menu-card:hover p { color: #cbd5e1; }
+        .welcome { position: absolute; top: 40px; text-align: center; width: 100%; z-index: 20; }
+        .welcome h1 { font-size: 2.5rem; background: linear-gradient(45deg, #0ea5e9, #34d399, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: glowText 3s ease infinite; }
+        @keyframes glowText { 0%, 100% { text-shadow: 0 0 10px rgba(14, 165, 233, 0.4); } 50% { text-shadow: 0 0 30px rgba(14, 165, 233, 0.8); } }
+        .welcome p { animation: fadeInText 1s ease-out; }
+        @keyframes fadeInText { from { opacity: 0; } to { opacity: 1; } }
+        .btn-logout { position: absolute; top: 40px; right: 40px; color: #f43f5e; font-size: 1.8rem; cursor: pointer; transition: all 0.3s; z-index: 20; }
+        .btn-logout:hover { transform: scale(1.2) rotate(90deg); text-shadow: 0 0 20px rgba(244, 63, 94, 0.6); }
+        .theme-btn { position: absolute; top: 40px; right: 100px; background: rgba(14, 165, 233, 0.2); border: 2px solid #0ea5e9; color: #0ea5e9; padding: 10px 15px; border-radius: 50px; cursor: pointer; font-size: 1.2rem; transition: all 0.3s; box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); z-index: 20; }
+        .theme-btn:hover { box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); background: rgba(14, 165, 233, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="welcome">
+        <h1>Welcome, Agent {{ username }}</h1>
+        <p>Select your mission parameter</p>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+    <a href="/logout" class="btn-logout" title="Logout"><i class="fa-solid fa-power-off"></i></a>
+
+    <div class="menu-grid">
+        <a href="/create_mode" class="menu-card">
+            <div class="icon-box"><i class="fa-solid fa-calendar-plus"></i></div>
+            <h2>Schedule Meeting</h2>
+            <p>Initiate new coordination event</p>
+        </a>
+        <a href="/join_mode" class="menu-card">
+            <div class="icon-box"><i class="fa-solid fa-handshake-angle"></i></div>
+            <h2>Join Lobby</h2>
+            <p>Access scheduled sessions</p>
+        </a>
+    </div>
+    <script>
+        function createParticles() {
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.top = window.innerHeight + 'px';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                document.body.appendChild(particle);
+                setTimeout(() => { particle.remove(); createParticles(); }, 25000);
+            }
+        }
+        function toggleTheme() {
+            const btn = document.querySelector('.theme-btn i');
+            if (localStorage.getItem('theme') === 'light') {
+                localStorage.setItem('theme', 'dark');
+                document.body.style.background = '#0f172a';
+                btn.className = 'fas fa-moon';
+            } else {
+                localStorage.setItem('theme', 'light');
+                document.body.style.background = '#f0f2f5';
+                document.querySelectorAll('.menu-card').forEach(card => {
+                    card.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 242, 245, 0.8))';
+                    card.style.borderColor = '#0ea5e9';
+                    card.style.color = '#333';
+                });
+                document.querySelector('.welcome h1').style.color = '#0ea5e9';
+                btn.className = 'fas fa-sun';
+            }
+        }
+        createParticles();
+    </script>
+</body>
+</html>
