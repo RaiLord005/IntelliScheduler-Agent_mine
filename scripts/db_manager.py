@@ -1,18 +1,16 @@
 import mysql.connector
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
-# FORCE LOAD .ENV FROM PARENT FOLDER
-base_dir = Path(__file__).resolve().parent.parent
-env_file = base_dir / '.env'
-load_dotenv(dotenv_path=env_file, encoding='utf-8')
+# Vercel handles environment variables differently, but this works for local testing
+load_dotenv()
 
 DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'user': os.getenv('DB_USER'), 
     'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME')
+    'database': os.getenv('DB_NAME'),
+    'port': os.getenv('DB_PORT', 3306) # Cloud providers often use custom ports
 }
 
 def get_connection():
