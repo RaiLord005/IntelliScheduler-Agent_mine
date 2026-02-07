@@ -10,7 +10,7 @@ DB_CONFIG = {
     'user': os.getenv('DB_USER'), 
     'password': os.getenv('DB_PASSWORD'),
     'database': os.getenv('DB_NAME'),
-    'port': os.getenv('DB_PORT', 3306) # Cloud providers often use custom ports
+    'port': os.getenv('DB_PORT', 12967) # Cloud providers often use custom ports
 }
 
 def get_connection():
